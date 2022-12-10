@@ -237,30 +237,6 @@ def reg_scalor(grad_yx):
     return torch.exp(-torch.abs(grad_yx)/255.)
     
     
-class sampler(Sampler):
-  def __init__(self, train_size, batch_size):
-    self.num_data = train_size
-    self.num_per_batch = int(train_size / batch_size)
-    self.batch_size = batch_size
-    self.range = torch.arange(0,batch_size).view(1, batch_size).long()
-    self.leftover_flag = False
-    if train_size % batch_size:
-      self.leftover = torch.arange(self.num_per_batch*batch_size, train_size).long()
-      self.leftover_flag = True
-
-  def __iter__(self):
-    rand_num = torch.randperm(self.num_per_batch).view(-1,1) * self.batch_size
-    self.rand_num = rand_num.expand(self.num_per_batch, self.batch_size) + self.range
-
-    self.rand_num_view = self.rand_num.view(-1)
-
-    if self.leftover_flag:
-      self.rand_num_view = torch.cat((self.rand_num_view, self.leftover),0)
-
-    return iter(self.rand_num_view)
-
-  def __len__(self):
-    return self.num_data
 
 def collate_fn(data):
     imgs, depths = zip(*data)
@@ -284,24 +260,6 @@ if __name__ == '__main__':
         os.makedirs(args.output_dir)
         
     # dataset
-    if args.dataset == 'kitti':
-        train_dataset = DepthDataset(root='/disk2/depth_data/kitti/train') # KittiDataset(train=True)
-        eval_dataset = DepthDataset(root='/disk2/depth_data/kitti/train') # KittiDataset(train=False)
-#         train_dataset = DepthDataset(root='../data/kitti/train') # KittiDataset(train=True)
-#         eval_dataset = DepthDataset(root='../data/kitti/train') # KittiDataset(train=False)
-        train_size = len(train_dataset)
-        eval_size = len(eval_dataset)
-        print(train_size, eval_size)
-
-        train_batch_sampler = sampler(train_size, args.bs)
-        eval_batch_sampler = sampler(eval_size, args.bs)
-
-        train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=args.bs,
-                                shuffle=True, collate_fn=collate_fn, num_workers=args.num_workers)
-        
-        eval_dataloader = torch.utils.data.DataLoader(eval_dataset, batch_size=args.bs,
-                                shuffle=True, collate_fn=collate_fn, num_workers=args.num_workers)
-        
     elif args.dataset == 'nyuv2':
         train_dataset = NYUv2Dataset()
         train_size = len(train_dataset)
