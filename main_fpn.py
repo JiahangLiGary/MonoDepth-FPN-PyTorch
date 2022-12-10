@@ -311,24 +311,6 @@ if __name__ == '__main__':
     normal_criterion = NormalLoss()
     eval_metric = RMSE_log()
     
-    # resume
-    if args.resume:
-        load_name = os.path.join(args.output_dir,
-          'i2d_1_{}.pth'.format(args.checkepoch))
-        print("loading checkpoint %s" % (load_name))
-        state = i2d.state_dict()
-        checkpoint = torch.load(load_name)
-        args.start_epoch = checkpoint['epoch']
-        checkpoint = {k: v for k, v in checkpoint['model'].items() if k in state}
-        state.update(checkpoint)
-        i2d.load_state_dict(state)
-#         optimizer.load_state_dict(checkpoint['optimizer'])
-#         lr = optimizer.param_groups[0]['lr']
-        if 'pooling_mode' in checkpoint.keys():
-            POOLING_MODE = checkpoint['pooling_mode']
-        print("loaded checkpoint %s" % (load_name))
-        del checkpoint
-        torch.cuda.empty_cache()
 
     # constants
     iters_per_epoch = int(train_size / args.bs)
